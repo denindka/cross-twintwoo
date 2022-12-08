@@ -1,0 +1,36 @@
+name: Build and Deploy
+
+on: 
+  push:
+    branches:
+      - first-deploy
+      - master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          DOCKER_BUILDKIT=1 docker build \
+          --cache-from ${ECR_REGISTRY}/cross:${ENV}-latest \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --tag ${ECR_REGISTRY}/cross:$BUILD_TAG \
+          --tag ${ECR_REGISTRY}/cross:${ENV}-latest \
+          .
+          docker push -a ${ECR_REGISTRY}/cross

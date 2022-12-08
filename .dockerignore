@@ -1,0 +1,5 @@
+.github
+Dockerfile
+terraform
+.travis.yml
+.gitignore

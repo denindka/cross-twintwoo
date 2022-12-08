@@ -5,3 +5,4 @@ tmp
 .jshintrc
 .npmignore
 npm-debug.log
+terraform
